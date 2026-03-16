@@ -1,0 +1,66 @@
+version: 2
+
+project_name: rootwatch
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: rootwatch
+    binary: rootwatch
+    main: ./cmd/rootwatch
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+  - id: rootwatch-agent
+    binary: rootwatch-agent
+    main: ./cmd/rootwatch-agent
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+archives:
+  - id: rootwatch
+    builds: [rootwatch]
+    name_template: "rootwatch_{{ .Os }}_{{ .Arch }}"
+    format: binary
+
+  - id: rootwatch-agent
+    builds: [rootwatch-agent]
+    name_template: "rootwatch-agent_{{ .Os }}_{{ .Arch }}"
+    format: binary
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+release:
+  github:
+    owner: rootwatch
+    name: rootwatch
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
