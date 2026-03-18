@@ -34,6 +34,41 @@ type ScanResponse struct {
 	} `json:"error"`
 }
 
+type HeartbeatResponse struct {
+	Data struct {
+		Status  string `json:"status"`
+		ScanNow bool   `json:"scan_now"`
+	} `json:"data"`
+}
+
+// Heartbeat sends a keepalive to the API and returns whether an on-demand
+// scan has been requested via the dashboard.
+func Heartbeat(cfg *config.Config) (bool, error) {
+	req, err := http.NewRequest("POST", cfg.APIURL+"/api/v1/agent/heartbeat", nil)
+	if err != nil {
+		return false, fmt.Errorf("failed to create heartbeat request: %w", err)
+	}
+	req.Header.Set("X-Agent-Token", cfg.AgentToken)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, fmt.Errorf("heartbeat request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("heartbeat returned status %d", resp.StatusCode)
+	}
+
+	var hbResp HeartbeatResponse
+	if err := json.NewDecoder(resp.Body).Decode(&hbResp); err != nil {
+		return false, fmt.Errorf("failed to decode heartbeat response: %w", err)
+	}
+
+	return hbResp.Data.ScanNow, nil
+}
+
 func Submit(cfg *config.Config, submission ScanSubmission) (int, error) {
 	payload, err := json.Marshal(submission)
 	if err != nil {

@@ -10,22 +10,21 @@ import (
 
 const AgentVersion = "0.1.0"
 
+const heartbeatInterval = 60 * time.Second
+
 func Start(cfg *config.Config) {
 	log.Printf("Starting RootWatch Agent v%s", AgentVersion)
 
 	runner := checks.NewRunner()
-	nextScanIn := time.Second * 0 // Run immediately on start
 
-	for {
-		time.Sleep(nextScanIn)
-
+	// runScan executes a full scan, submits it, and returns the next scheduled interval.
+	runScan := func() time.Duration {
 		log.Println("Starting security scan...")
 		startedAt := time.Now()
 		results, duration, err := runner.RunAll()
 		if err != nil {
 			log.Printf("Scan failed: %v", err)
-			nextScanIn = 5 * time.Minute // Retry shortly if completely failed
-			continue
+			return 5 * time.Minute // Retry shortly
 		}
 
 		log.Printf("Scan complete in %dms, found %d check results", duration, len(results))
@@ -34,7 +33,7 @@ func Start(cfg *config.Config) {
 
 		submission := ScanSubmission{
 			Hostname:          GetHostname(),
-			IPAddress:         "0.0.0.0", // Simplified for v1, actual IP often detected server-side or via outbound call logic
+			IPAddress:         "0.0.0.0",
 			OS:                GetOS(),
 			AgentVersion:      AgentVersion,
 			ScanDurationMs:    duration,
@@ -46,21 +45,56 @@ func Start(cfg *config.Config) {
 		scanInterval, err := Submit(cfg, submission)
 		if err != nil {
 			log.Printf("Failed to submit scan: %v", err)
-			nextScanIn = 5 * time.Minute // Retry submission slowly
-			continue
+			return 5 * time.Minute
 		}
 
 		if scanInterval > 0 {
-			nextScanIn = time.Duration(scanInterval) * time.Second
-		} else {
-			// Fallback config interval
-			dur, _ := time.ParseDuration(cfg.ScanInterval)
-			if dur == 0 {
-				dur = 24 * time.Hour
-			}
-			nextScanIn = dur
+			d := time.Duration(scanInterval) * time.Second
+			log.Printf("Next scan scheduled in %v", d)
+			return d
 		}
 
-		log.Printf("Next scan scheduled in %v", nextScanIn)
+		dur, _ := time.ParseDuration(cfg.ScanInterval)
+		if dur == 0 {
+			dur = 24 * time.Hour
+		}
+		log.Printf("Next scan scheduled in %v", dur)
+		return dur
+	}
+
+	// Run a scan immediately on startup, then schedule the next one.
+	nextScanIn := runScan()
+
+	scanTimer := time.NewTimer(nextScanIn)
+	heartbeatTicker := time.NewTicker(heartbeatInterval)
+	defer scanTimer.Stop()
+	defer heartbeatTicker.Stop()
+	log.Printf("Healthcheck started (interval: %s)", heartbeatInterval)
+
+	for {
+		select {
+		case <-scanTimer.C:
+			nextScanIn = runScan()
+			scanTimer.Reset(nextScanIn)
+
+		case <-heartbeatTicker.C:
+			scanNow, err := Heartbeat(cfg)
+			if err != nil {
+				log.Printf("Heartbeat failed: %v", err)
+				continue
+			}
+			if scanNow {
+				log.Println("On-demand scan requested via dashboard — running immediately")
+				// Cancel the scheduled timer before running the unscheduled scan.
+				if !scanTimer.Stop() {
+					select {
+					case <-scanTimer.C:
+					default:
+					}
+				}
+				nextScanIn = runScan()
+				scanTimer.Reset(nextScanIn)
+			}
+		}
 	}
 }
