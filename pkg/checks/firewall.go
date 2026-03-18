@@ -19,7 +19,7 @@ func (c *FirewallCheck) Run() ([]CheckResult, error) {
 		if strings.Contains(string(out), "Status: active") {
 			status = "pass"
 		}
-		
+
 		results = append(results, CheckResult{
 			Category:      "firewall",
 			CheckID:       "fw-enabled",
@@ -29,7 +29,8 @@ func (c *FirewallCheck) Run() ([]CheckResult, error) {
 			Status:        status,
 			CurrentValue:  string(out),
 			ExpectedValue: "Status: active",
-			FixCommand:    "ufw enable",
+			FixCommand:    "ufw allow ssh && ufw --force enable",
+			FixWarning:    "Allows SSH before enabling — verify any other required ports with 'ufw allow <port>' first.",
 			CISControl:    "CIS 3.5.1",
 		})
 	} else {
@@ -42,7 +43,8 @@ func (c *FirewallCheck) Run() ([]CheckResult, error) {
 			Status:        "fail",
 			CurrentValue:  "Not Active / Not Installed",
 			ExpectedValue: "Active",
-			FixCommand:    "apt-get install ufw && ufw enable",
+			FixCommand:    "apt-get install -y ufw && ufw allow ssh && ufw --force enable",
+			FixWarning:    "Allows SSH before enabling — verify any other required ports with 'ufw allow <port>' first.",
 			CISControl:    "CIS 3.5.1",
 		})
 	}

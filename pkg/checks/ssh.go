@@ -38,15 +38,43 @@ func (c *SSHCheck) Run() ([]CheckResult, error) {
 		}
 	}
 
-	results = append(results, checkConfigCIS(configMap, "permitrootlogin", "no", "ssh-root-login", "Root SSH Login Disabled", "Checks whether root login via SSH is disabled", "critical", "sed -i 's/^#\\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && systemctl restart sshd", "CIS 5.2.8"))
-	results = append(results, checkConfigCIS(configMap, "passwordauthentication", "no", "ssh-password-auth", "Password Authentication Disabled", "Password Authentication should be no", "warning", "", "CIS 5.2.11"))
-	results = append(results, checkConfigCIS(configMap, "permitemptypasswords", "no", "ssh-empty-passwords", "Empty Passwords Denied", "PermitEmptyPasswords should be no", "critical", "", "CIS 5.2.9"))
-	results = append(results, checkConfigCIS(configMap, "x11forwarding", "no", "ssh-x11-forwarding", "X11 Forwarding Disabled", "X11Forwarding should be no", "info", "", "CIS 5.2.6"))
+	results = append(results, checkConfigCIS(configMap,
+		"permitrootlogin", "no",
+		"ssh-root-login", "Root SSH Login Disabled", "Checks whether root login via SSH is disabled",
+		"critical",
+		"sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config && sshd -t && systemctl reload sshd",
+		"Verify you have a non-root sudo user before applying — you will not be able to log in as root afterwards.",
+		"CIS 5.2.8",
+	))
+	results = append(results, checkConfigCIS(configMap,
+		"passwordauthentication", "no",
+		"ssh-password-auth", "Password Authentication Disabled", "Password Authentication should be no",
+		"warning",
+		"sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config && sshd -t && systemctl reload sshd",
+		"Ensure SSH key authentication is configured and tested before disabling passwords.",
+		"CIS 5.2.11",
+	))
+	results = append(results, checkConfigCIS(configMap,
+		"permitemptypasswords", "no",
+		"ssh-empty-passwords", "Empty Passwords Denied", "PermitEmptyPasswords should be no",
+		"critical",
+		"sed -i 's/^#*PermitEmptyPasswords.*/PermitEmptyPasswords no/' /etc/ssh/sshd_config && sshd -t && systemctl reload sshd",
+		"",
+		"CIS 5.2.9",
+	))
+	results = append(results, checkConfigCIS(configMap,
+		"x11forwarding", "no",
+		"ssh-x11-forwarding", "X11 Forwarding Disabled", "X11Forwarding should be no",
+		"info",
+		"sed -i 's/^#*X11Forwarding.*/X11Forwarding no/' /etc/ssh/sshd_config && sshd -t && systemctl reload sshd",
+		"",
+		"CIS 5.2.6",
+	))
 
 	return results, nil
 }
 
-func checkConfigCIS(config map[string]string, key, expectedStr, id, title, description, severity, fixCmd, cisControl string) CheckResult {
+func checkConfigCIS(config map[string]string, key, expectedStr, id, title, description, severity, fixCmd, fixWarning, cisControl string) CheckResult {
 	val, ok := config[key]
 	if !ok {
 		val = "not set (default)"
@@ -67,11 +95,7 @@ func checkConfigCIS(config map[string]string, key, expectedStr, id, title, descr
 		CurrentValue:  key + " " + val,
 		ExpectedValue: key + " " + expectedStr,
 		FixCommand:    fixCmd,
+		FixWarning:    fixWarning,
 		CISControl:    cisControl,
 	}
-}
-
-// checkConfig is kept for backward compatibility.
-func checkConfig(config map[string]string, key, expectedStr, id, title, description, severity, fixCmd string) CheckResult {
-	return checkConfigCIS(config, key, expectedStr, id, title, description, severity, fixCmd, "")
 }

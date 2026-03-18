@@ -21,7 +21,7 @@ func Start(cfg *config.Config) {
 	runScan := func() time.Duration {
 		log.Println("Starting security scan...")
 		startedAt := time.Now()
-		results, duration, err := runner.RunAll()
+		results, duration, err := runner.RunAll(nil, nil)
 		if err != nil {
 			log.Printf("Scan failed: %v", err)
 			return 5 * time.Minute // Retry shortly
