@@ -4,15 +4,15 @@ set -e
 # Rootwatch Installer
 # Usage:
 #   Install CLI (local scans, no account needed):
-#     curl -sSL https://rootwatch.dev/install | bash
+#     curl -sSL https://rootwatch.net/install | bash
 #
 #   Install agent daemon (continuous cloud monitoring):
-#     curl -sSL https://rootwatch.dev/install | bash -s -- --token rw_xxxxxxxx
+#     curl -sSL https://rootwatch.net/install | bash -s -- --token rw_xxxxxxxx
 
 VERSION="0.1.0"
 GITHUB_REPO="rootwatch/rootwatch"
 TOKEN=""
-API_URL="https://api.rootwatch.dev"
+API_URL="https://rootwatch.net"
 NO_SUDO=false
 MODE=""  # "cli" or "agent" — determined automatically
 
@@ -28,7 +28,7 @@ while [[ "$#" -gt 0 ]]; do
             echo ""
             echo "  Without --token: installs the rootwatch CLI for local one-off scans."
             echo "  With --token:    installs the rootwatch-agent daemon for continuous"
-            echo "                   cloud monitoring at https://app.rootwatch.dev"
+            echo "                   cloud monitoring at https://rootwatch.net"
             exit 0
             ;;
         *) echo "Unknown parameter: $1"; exit 1 ;;
@@ -84,7 +84,7 @@ if [ "$MODE" = "cli" ]; then
     echo "  JSON output:"
     echo "    rootwatch --output json"
     echo ""
-    echo "  Continuous monitoring → https://rootwatch.dev"
+    echo "  Continuous monitoring → https://rootwatch.net"
     exit 0
 fi
 
@@ -146,4 +146,4 @@ else
 fi
 
 echo ""
-echo "  Dashboard: https://app.rootwatch.dev"
+echo "  Dashboard: https://rootwatch.net"

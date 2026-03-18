@@ -73,7 +73,7 @@ func submitToCloud(args cliArgs, results []checks.CheckResult, durationMs int, h
 
 	apiURL := args.apiURL
 	if apiURL == "" {
-		apiURL = "https://api.rootwatch.dev"
+		apiURL = "https://rootwatch.net"
 	}
 
 	fmt.Fprintln(os.Stderr, "rootwatch: submitting results to Rootwatch Cloud...")
@@ -82,7 +82,7 @@ func submitToCloud(args cliArgs, results []checks.CheckResult, durationMs int, h
 		fmt.Fprintf(os.Stderr, "rootwatch: cloud submission failed: %v\n", err)
 		fmt.Fprintln(os.Stderr, "rootwatch: showing local results only")
 	} else {
-		fmt.Fprintln(os.Stderr, "rootwatch: results submitted. View at https://app.rootwatch.dev")
+		fmt.Fprintln(os.Stderr, "rootwatch: results submitted. View at https://rootwatch.net")
 	}
 }
 
@@ -136,7 +136,7 @@ USAGE
 FLAGS
   --output, -o    Output format: table (default), json, markdown
   --token, -t     Rootwatch Cloud token (submit results to your dashboard)
-  --api-url       Cloud API URL (default: https://api.rootwatch.dev)
+  --api-url       Cloud API URL (default: https://rootwatch.net)
   --version, -v   Print version and exit
   --help, -h      Show this help
 
@@ -158,7 +158,7 @@ EXAMPLES
 
 UPGRADE
   Continuous monitoring, trends, compliance reports, and team features
-  are available at https://rootwatch.dev
+  are available at https://rootwatch.net
 
 `, version)
 }

@@ -26,7 +26,7 @@ rootwatch: running security checks...
 
 ```bash
 # Install
-curl -sSL https://rootwatch.dev/install | bash
+curl -sSL https://rootwatch.net/install | bash
 
 # Run a scan
 rootwatch
@@ -62,7 +62,7 @@ rootwatch [flags]
 FLAGS
   --output, -o    Output format: table (default), json, markdown
   --token, -t     Submit results to Rootwatch Cloud dashboard
-  --api-url       Cloud API URL (default: https://api.rootwatch.dev)
+  --api-url       Cloud API URL (default: https://rootwatch.net)
   --version, -v   Print version
   --help, -h      Show help
 
@@ -79,7 +79,7 @@ GitHub Actions example:
 ```yaml
 - name: Security scan
   run: |
-    curl -sSL https://rootwatch.dev/install | bash
+    curl -sSL https://rootwatch.net/install | bash
     rootwatch --output json | tee scan.json
     # Fail the pipeline if critical issues found (exit code 2)
     rootwatch
@@ -90,7 +90,7 @@ GitLab CI:
 ```yaml
 security:
   script:
-    - curl -sSL https://rootwatch.dev/install | bash
+    - curl -sSL https://rootwatch.net/install | bash
     - rootwatch --output json > gl-security-report.json
   artifacts:
     reports:
@@ -119,13 +119,13 @@ firewallResults := checks.RunFirewall()
 
 ## Install the agent daemon
 
-For continuous monitoring and a full dashboard, create a free account at [rootwatch.dev](https://rootwatch.dev) and install the agent:
+For continuous monitoring and a full dashboard, create a free account at [rootwatch.net](https://rootwatch.net) and install the agent:
 
 ```bash
-curl -sSL https://rootwatch.dev/install | bash -s -- --token rw_xxxxxxxxxxxxxxxx
+curl -sSL https://rootwatch.net/install | bash -s -- --token rw_xxxxxxxxxxxxxxxx
 ```
 
-The agent runs as a `systemd` service, scans on schedule, and submits results to your [Rootwatch Cloud](https://app.rootwatch.dev) dashboard for trend tracking, compliance reports, and team alerts.
+The agent runs as a `systemd` service, scans on schedule, and submits results to your [Rootwatch Cloud](https://rootwatch.net) dashboard for trend tracking, compliance reports, and team alerts.
 
 ## Rootwatch Cloud
 
@@ -141,7 +141,7 @@ The agent runs as a `systemd` service, scans on schedule, and submits results to
 | Email + Slack alerts | — | ✓ |
 | CVE lookup | — | ✓ |
 
-[Get started →](https://rootwatch.dev)
+[Get started →](https://rootwatch.net)
 
 ## License
 
